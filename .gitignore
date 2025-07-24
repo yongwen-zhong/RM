@@ -1,0 +1,19 @@
+# Visual Studio 生成的文件
+.vs/
+*.ipch
+[Dd]ebug/
+[Rr]elease/
+[Xx]64/
+[Xx]86/
+*.exe
+*.lib
+*.dll
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 其他常见忽略项
+obj/
+bin/
+packages/
