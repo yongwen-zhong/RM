@@ -6,7 +6,7 @@
 using namespace cv;
 using namespace std;
 
-// ¼ÆËãÁ½µã¼ä¾àÀë
+// è®¡ç®—ä¸¤ç‚¹é—´è·ç¦»
 double distance(Point a, Point b) {
     int dx = a.x - b.x;
     int dy = a.y - b.y;
@@ -14,10 +14,9 @@ double distance(Point a, Point b) {
 }
 
 int main() {
-    // ´ò¿ªÉãÏñÍ·
     VideoCapture cap(0, CAP_DSHOW);
     if (!cap.isOpened()) {
-        cerr << "ÎŞ·¨´ò¿ªÉãÏñÍ·£¡" << endl;
+        cerr << "æ— æ³•æ‰“å¼€æ‘„åƒå¤´ï¼" << endl;
         return -1;
     }
 
@@ -25,44 +24,41 @@ int main() {
         Mat frame;
         cap.read(frame);
         if (frame.empty()) {
-            cerr << "ÎŞ·¨»ñÈ¡Ö¡£¡" << endl;
+            cerr << "æ— æ³•è·å–å¸§ï¼" << endl;
             break;
         }
 
-        flip(frame, frame, 1);  // Ë®Æ½·­×ª£¨¾µÏñÏÔÊ¾£©
+        flip(frame, frame, 1);  // æ°´å¹³ç¿»è½¬
 
-        // ¶¨ÒåROIÇøÓò£¨ÓÒÉÏ½Ç200x200£©
+        // å®šä¹‰ROIåŒºåŸŸï¼ˆå³ä¸Šè§’200x200ï¼‰
         Rect roi_rect(400, 10, 200, 200);
         Mat roi = frame(roi_rect);
-        rectangle(frame, roi_rect, Scalar(0, 0, 255), 1);  // ±ê¼ÇROI
-
-        // ======================È¡Ïû·ôÉ«¼ì²â£¬¸ÄÓÃ»Ò¶ÈãĞÖµ·Ö¸î======================
-        // 1. ×ªÎª»Ò¶ÈÍ¼£¨Ìæ´úHSV·ôÉ«¼ì²â£©
+        rectangle(frame, roi_rect, Scalar(0, 0, 255), 1);  // æ ‡è®°ROI
+        // 1. è½¬ä¸ºç°åº¦å›¾ï¼ˆæ›¿ä»£HSVè‚¤è‰²æ£€æµ‹ï¼‰
         Mat gray, mask;
-        cvtColor(roi, gray, COLOR_BGR2GRAY);  // BGR×ª»Ò¶È
+        cvtColor(roi, gray, COLOR_BGR2GRAY);  // BGRè½¬ç°åº¦
 
-        // 2. ãĞÖµ·Ö¸î£¨Çø·ÖÊÖºÍ±³¾°£º¼ÙÉèÊÖÊÇ½Ï°µ/½ÏÁÁµÄÇøÓò£¬¿É¸ù¾İÊµ¼Êµ÷Õû£©
-        // ×¢Òâ£ºÕâÀïÓÃ×ÔÊÊÓ¦ãĞÖµ£¬±È¹Ì¶¨ãĞÖµ¸üÊÊÓ¦¹âÕÕ±ä»¯
+        // 2. åŒºåˆ†æ‰‹å’ŒèƒŒæ™¯
+    
         adaptiveThreshold(gray, mask, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 11, 2);
-        // ËµÃ÷£ºADAPTIVE_THRESH_GAUSSIAN_C=¸ßË¹¼ÓÈ¨ãĞÖµ£»THRESH_BINARY_INV=ºÚ°×·´×ª£¨ÊÖÎª°×É«£¬±³¾°ºÚÉ«£©
+  
 
-        // ==========================================================================
 
-        // 3. Ô¤´¦Àí£¨ÅòÕÍ+¸ßË¹Ä£ºı£¬±£ÁôÔ­Âß¼­µ«½µµÍÇ¿¶È£¬±ÜÃâ¹ı¶ÈÄ£ºı£©
+ 
         Mat kernel = getStructuringElement(MORPH_RECT, Size(2, 2));
-        dilate(mask, mask, kernel, Point(-1, -1), 1);  // ½µµÍÅòÕÍ´ÎÊı£¨1´Î£©
-        GaussianBlur(mask, mask, Size(5, 5), 1);  // ½µµÍÄ£ºı³Ì¶È£¨sigma=1£©
+        dilate(mask, mask, kernel, Point(-1, -1), 1);  // é™ä½è†¨èƒ€æ¬¡æ•°ï¼ˆ1æ¬¡ï¼‰
+        GaussianBlur(mask, mask, Size(5, 5), 1);  // é™ä½æ¨¡ç³Šç¨‹åº¦ï¼ˆsigma=1ï¼‰
 
-        // 4. ÌáÈ¡ÂÖÀª£¨Ô­Âß¼­²»±ä£©
+        // 4. æå–è½®å»“
         vector<vector<Point>> contours;
         vector<Vec4i> hierarchy;
         findContours(mask, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
-        string result = "Î´Öª";
+        string result = "æœªçŸ¥";
 
         if (!contours.empty()) {
-            // É¸Ñ¡Ãæ»ı×î´óµÄÂÖÀª£¨ÊÖ²¿£©£¬²¢¹ıÂËĞ¡Ãæ»ı¸ÉÈÅ
-            double min_area = 500;  // ×îĞ¡ÂÖÀªÃæ»ı£¨¹ıÂË±³¾°Ôëµã£©
+            // ç­›é€‰é¢ç§¯æœ€å¤§çš„è½®å»“ï¼ˆæ‰‹éƒ¨ï¼‰ï¼Œå¹¶è¿‡æ»¤å°é¢ç§¯å¹²æ‰°
+            double min_area = 500;  // æœ€å°è½®å»“é¢ç§¯ï¼ˆè¿‡æ»¤èƒŒæ™¯å™ªç‚¹ï¼‰
             vector<vector<Point>> valid_contours;
             for (auto& c : contours) {
                 if (contourArea(c) > min_area) {
@@ -70,10 +66,10 @@ int main() {
                 }
             }
             if (valid_contours.empty()) {
-                result = "ÎŞÓĞĞ§ÂÖÀª";
+                result = "æ— æœ‰æ•ˆè½®å»“";
             }
             else {
-                // ÕÒµ½×î´óÓĞĞ§ÂÖÀª
+                // æ‰¾åˆ°æœ€å¤§æœ‰æ•ˆè½®å»“
                 int max_idx = 0;
                 double max_area = contourArea(valid_contours[0]);
                 for (int i = 1; i < valid_contours.size(); i++) {
@@ -86,13 +82,13 @@ int main() {
                 vector<Point> cnt = valid_contours[max_idx];
                 double areacnt = max_area;
 
-                // ¼ÆËãÍ¹°üºÍÃæ»ı±È
+                // è®¡ç®—å‡¸åŒ…å’Œé¢ç§¯æ¯”
                 vector<Point> hull;
                 convexHull(cnt, hull);
                 double areahull = contourArea(hull);
                 double arearatio = areacnt / areahull;
 
-                // ¼ÆËãÍ¹È±Ïİ
+                // è®¡ç®—å‡¸ç¼ºé™·
                 vector<int> hull_indices;
                 convexHull(cnt, hull_indices, false);
                 vector<Vec4i> defects;
@@ -100,7 +96,7 @@ int main() {
                     convexityDefects(cnt, hull_indices, defects);
                 }
 
-                // Í³¼ÆÓĞĞ§Í¹È±Ïİ£¨·Å¿íÌõ¼ş£¬±ÜÃâÂ©¼ì£©
+                // ç»Ÿè®¡æœ‰æ•ˆå‡¸ç¼ºé™·ï¼ˆæ”¾å®½æ¡ä»¶ï¼Œé¿å…æ¼æ£€ï¼‰
                 int n = 0;
                 for (int i = 0; i < defects.size(); i++) {
                     Vec4i d = defects[i];
@@ -110,30 +106,30 @@ int main() {
                     Point start = cnt[s];
                     Point end = cnt[e];
                     Point far = cnt[f];
-                    double depth = d[3] / 256.0;  // È±ÏİÉî¶È
+                    double depth = d[3] / 256.0;  // ç¼ºé™·æ·±åº¦
 
-                    // ¼ÆËã½Ç¶È
+                    // è®¡ç®—è§’åº¦
                     double a = distance(end, start);
                     double b = distance(far, start);
                     double c = distance(end, far);
                     if (b == 0 || c == 0) continue;
                     double angle = acos((b * b + c * c - a * a) / (2 * b * c)) * 180 / CV_PI;
 
-                    // ·Å¿íÌõ¼ş£º½Ç¶È¡Ü100¶È£¬Éî¶È>10£¨¸üÈİÒ×¼ì²âµ½Ö¸·ì£©
+                    // æ”¾å®½æ¡ä»¶ï¼šè§’åº¦â‰¤100åº¦ï¼Œæ·±åº¦>10ï¼ˆæ›´å®¹æ˜“æ£€æµ‹åˆ°æŒ‡ç¼ï¼‰
                     if (angle <= 100 && depth > 10) {
                         n++;
-                        circle(roi, far, 3, Scalar(255, 0, 0), -1);  // ±ê¼ÇÈ±Ïİµã
+                        circle(roi, far, 3, Scalar(255, 0, 0), -1);  // æ ‡è®°ç¼ºé™·ç‚¹
                     }
-                    line(roi, start, end, Scalar(0, 255, 0), 2);  // »æÖÆÍ¹°ü±ßÔµ
+                    line(roi, start, end, Scalar(0, 255, 0), 2);  // ç»˜åˆ¶å‡¸åŒ…è¾¹ç¼˜
                 }
 
-                // 5. ÊÖÊÆÅĞ¶Ï£¨Ô­Âß¼­²»±ä£©
+                // 5. æ‰‹åŠ¿åˆ¤æ–­ï¼ˆåŸé€»è¾‘ä¸å˜ï¼‰
                 if (n == 0) {
                     if (arearatio > 0.9) {
-                        result = "0";  // È­Í·
+                        result = "0";  // æ‹³å¤´
                     }
                     else {
-                        result = "1";  // µ¥Ö¸
+                        result = "1";  // å•æŒ‡
                     }
                 }
                 else if (n == 1) {
@@ -149,17 +145,15 @@ int main() {
                     result = "5";
                 }
                 else {
-                    result = "Î´Öª";
+                    result = "æœªçŸ¥";
                 }
             }
         }
 
-        // ÏÔÊ¾½á¹û
+        // æ˜¾ç¤ºç»“æœ
         putText(frame, result, Point(400, 80), FONT_HERSHEY_SIMPLEX, 2.0, Scalar(0, 0, 255), 3);
-        imshow("ÊÖÊÆÊ¶±ğ£¨0-5£©", frame);
-        imshow("ãĞÖµ·Ö¸î½á¹û£¨µ÷ÊÔÓÃ£©", mask);  // ÏÔÊ¾mask£¬±ãÓÚ¹Û²ì·Ö¸îĞ§¹û
+        imshow("æ‰‹åŠ¿è¯†åˆ«ï¼ˆ0-5ï¼‰", frame);
 
-        // °´ESCÍË³ö
         if (waitKey(25) == 27) {
             break;
         }
